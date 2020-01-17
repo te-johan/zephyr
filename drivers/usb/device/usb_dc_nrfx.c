@@ -1231,7 +1231,48 @@ static inline void usbd_reinit(void)
 		__ASSERT_NO_MSG(0);
 	}
 }
+/**
+ * @brief funciton to generate fake receive request for
+ * ISO OUT EP.
+ *
+ * ISO OUT endpoint does not generate irq by itself and reading
+ * from ISO OUT ep is sunchronized with SOF frame. For more details
+ * refer to Nordic usbd specification.
+ */
+static void usbd_sof_trigger_iso_read(void)
+{
+	struct usbd_event *ev;
+	struct nrf_usbd_ep_ctx *ep_ctx;
 
+	if (nrfx_usbd_ep_enable_check(NRFX_USBD_EPOUT8)) {
+		/** Dissect receive request
+		 * if the iso OUT ep is enabled
+		 */
+		ep_ctx = endpoint_ctx(NRFX_USBD_EPOUT8);
+		if (!ep_ctx) {
+			LOG_ERR("There is not ISO ep");
+			return;
+		}
+		if (ep_ctx->cfg.en) {
+			ep_ctx->read_pending = true;
+			ep_ctx->read_complete = true;
+			ev = usbd_evt_alloc();
+			if (!ev) {
+				LOG_ERR("Failed to alloc evt");
+				return;
+			}
+			ev->evt_type = USBD_EVT_EP;
+			ev->evt.ep_evt.evt_type = EP_EVT_RECV_REQ;
+			ev->evt.ep_evt.ep = ep_ctx;
+			usbd_evt_put(ev);
+			usbd_work_schedule();
+		} else {
+			LOG_DBG("Endpoint is not enabled");
+		}
+	} else {
+		/* Do nothing */
+	}
+}
 
 /* Work handler */
 static void usbd_work_handler(struct k_work *item)
@@ -1270,6 +1311,8 @@ static void usbd_work_handler(struct k_work *item)
 			}
 			break;
 		case USBD_EVT_SOF:
+			usbd_sof_trigger_iso_read();
+
 			if (ctx->status_cb) {
 				ctx->status_cb(USB_DC_SOF, NULL);
 			}
