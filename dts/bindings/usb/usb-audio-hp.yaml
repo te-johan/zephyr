@@ -1,0 +1,25 @@
+# Copyright (c) 2020 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+# Specific fields for USB audio headphones.
+
+description: USB Audio headphones specific fields.
+
+compatible: "usb-audio-hp"
+
+include: usb-audio.yaml
+
+properties:
+  resolution:
+    type: int
+    default: 24
+    required: false
+    enum:
+     - 8
+     - 16
+     - 24
+     - 32
+  ep-addr:
+    type: int
+    required: true
+    description: ISO endpoint address.
