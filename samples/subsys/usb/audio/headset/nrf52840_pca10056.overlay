@@ -1,0 +1,18 @@
+/*
+ * Copyright (c) 2019 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&usbd {
+	hs_0 {
+		compatible = "usb-audio-hs";
+		feature-mute;
+		channel-l;
+		channel-r;
+		ep-addr-mic = <0x88>;
+		ep-addr-hp = <0x08>;
+		resolution-mic = <16>;
+		resolution-hp = <16>;
+	};
+};
