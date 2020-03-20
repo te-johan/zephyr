@@ -337,6 +337,26 @@ struct dev##_feature_unit_descriptor_##i##_##inst {	\
 	u8_t iFeature;					\
 } __packed
 
+#ifdef CONFIG_USB_COMPOSITE_DEVICE
+#define DECLARE_DESCRIPTOR(dev, i, ifaces)				\
+DECLARE_HEADER(dev, i, ifaces);						\
+DECLARE_FEATURE_UNIT(dev, i);						\
+struct dev##_descriptor_##i {						\
+	struct usb_association_descriptor iad;				\
+	struct usb_if_descriptor std_ac_interface;			\
+	struct dev##_cs_ac_interface_descriptor_header_##i		\
+						ac_interface_header;	\
+	struct input_terminal_descriptor input_terminal;		\
+	struct dev##_feature_unit_descriptor_##i feature_unit;		\
+	struct output_terminal_descriptor output_terminal;		\
+	struct usb_if_descriptor as_interface_alt_0;			\
+	struct usb_if_descriptor as_interface_alt_1;			\
+		struct as_cs_interface_descriptor as_cs_interface;	\
+		struct format_type_i_descriptor format;			\
+		struct std_as_ad_endpoint_descriptor std_ep_desc;	\
+		struct cs_as_ad_ep_descriptor cs_ep_desc;		\
+} __packed
+#else
 #define DECLARE_DESCRIPTOR(dev, i, ifaces)				\
 DECLARE_HEADER(dev, i, ifaces);						\
 DECLARE_FEATURE_UNIT(dev, i);						\
@@ -354,7 +374,38 @@ struct dev##_descriptor_##i {						\
 		struct std_as_ad_endpoint_descriptor std_ep_desc;	\
 		struct cs_as_ad_ep_descriptor cs_ep_desc;		\
 } __packed
+#endif
 
+#ifdef CONFIG_USB_COMPOSITE_DEVICE
+#define DECLARE_DESCRIPTOR_BIDIR(dev, i, ifaces)			\
+DECLARE_HEADER(dev, i, ifaces);						\
+DECLARE_FEATURE_UNIT_BIDIR(dev, i, 0);					\
+DECLARE_FEATURE_UNIT_BIDIR(dev, i, 1);					\
+struct dev##_descriptor_##i {						\
+	struct usb_association_descriptor iad;				\
+	struct usb_if_descriptor std_ac_interface;			\
+	struct dev##_cs_ac_interface_descriptor_header_##i		\
+						ac_interface_header;	\
+	struct input_terminal_descriptor input_terminal_0;		\
+	struct dev##_feature_unit_descriptor_##i##_0 feature_unit_0;	\
+	struct output_terminal_descriptor output_terminal_0;		\
+	struct input_terminal_descriptor input_terminal_1;		\
+	struct dev##_feature_unit_descriptor_##i##_1 feature_unit_1;	\
+	struct output_terminal_descriptor output_terminal_1;		\
+	struct usb_if_descriptor as_interface_alt_0_0;			\
+	struct usb_if_descriptor as_interface_alt_0_1;			\
+		struct as_cs_interface_descriptor as_cs_interface_0;	\
+		struct format_type_i_descriptor format_0;		\
+		struct std_as_ad_endpoint_descriptor std_ep_desc_0;	\
+		struct cs_as_ad_ep_descriptor cs_ep_desc_0;		\
+	struct usb_if_descriptor as_interface_alt_1_0;			\
+	struct usb_if_descriptor as_interface_alt_1_1;			\
+		struct as_cs_interface_descriptor as_cs_interface_1;	\
+		struct format_type_i_descriptor format_1;		\
+		struct std_as_ad_endpoint_descriptor std_ep_desc_1;	\
+		struct cs_as_ad_ep_descriptor cs_ep_desc_1;		\
+} __packed
+#else
 #define DECLARE_DESCRIPTOR_BIDIR(dev, i, ifaces)			\
 DECLARE_HEADER(dev, i, ifaces);						\
 DECLARE_FEATURE_UNIT_BIDIR(dev, i, 0);					\
@@ -382,6 +433,19 @@ struct dev##_descriptor_##i {						\
 		struct std_as_ad_endpoint_descriptor std_ep_desc_1;	\
 		struct cs_as_ad_ep_descriptor cs_ep_desc_1;		\
 } __packed
+#endif
+
+#define INIT_IAD(iface_subclass)					\
+{									\
+       	.bLength = sizeof(struct usb_association_descriptor),		\
+       	.bDescriptorType = USB_ASSOCIATION_DESC,			\
+       	.bFirstInterface = 0,						\
+       	.bInterfaceCount = 0x02,					\
+       	.bFunctionClass = AUDIO_CLASS,					\
+       	.bFunctionSubClass = iface_subclass,				\
+       	.bFunctionProtocol = 0,						\
+       	.iFunction = 0,							\
+}
 
 #define INIT_STD_IF(iface_subclass, iface_num, alt_setting, eps_num)	\
 {									\
