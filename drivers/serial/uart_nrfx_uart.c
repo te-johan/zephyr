@@ -983,8 +983,12 @@ static int uart_nrfx_init(struct device *dev)
 	nrf_uart_enable(uart0_addr);
 
 	if (RX_PIN_USED) {
-		nrf_uart_event_clear(uart0_addr, NRF_UART_EVENT_RXDRDY);
-
+		/* Empty the rx fifo for stale bytes. */
+		while (nrf_uart_event_check(uart0_addr,
+					    NRF_UART_EVENT_RXDRDY)) {
+			nrf_uart_event_clear(uart0_addr, NRF_UART_EVENT_RXDRDY);
+			nrf_uart_rxd_get(uart0_addr);
+                }
 		nrf_uart_task_trigger(uart0_addr, NRF_UART_TASK_STARTRX);
 	}
 
