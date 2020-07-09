@@ -1228,8 +1228,9 @@ static int class_handler(struct usb_setup_packet *pSetup,
 			continue;
 		}
 
-		if (iface->class_handler &&
-		    if_descr->bInterfaceNumber == (pSetup->wIndex & 0xFF)) {
+		if (face->class_handler &&
+		    (if_descr->bInterfaceNumber == (pSetup->wIndex) & 0xFF ||
+		     if_descr->bInterfaceClass == AUDIO_CLASS)) {
 			return iface->class_handler(pSetup, len, data);
 		}
 	}
